@@ -1,5 +1,6 @@
 #include<ctime>
 #include<vector>
+#include "DiskController.h"
 #include "Address.h"
 
 const int DIRECT_BLOCK_NUM = 10;
@@ -9,6 +10,7 @@ const int MAX_FILE_LENGTH = 42;
 
 class INode{
     private:
+    DiskController disk;
     int fileLength; //对应文件长度， 以kb为单位
     time_t mtime; // 修改时间
     time_t ctime; // 创建时间
@@ -39,6 +41,7 @@ INode::INode(){
     fileLength = 0;
     ctime = mtime = atime = time(0);
     linkNum = 1;
+    disk = new DiskController();
 }
 
 void INode::createINode(int kbLength){
@@ -90,6 +93,7 @@ std::vector<Address> INode::getAllBlockAddress() {
     for(auto addr:directBlockAddress){
         ans.push_back(addr);
     }
+    std::string blockContent = disk.readBlock();
     //todo
 }
 void INode::loadFromString(std::string str) {
