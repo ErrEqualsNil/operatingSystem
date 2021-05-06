@@ -1,11 +1,17 @@
 #include <iostream>
-#include "Components.h"
+#include<bitset>
+#include <vector>
+#include <fstream>
 
 using namespace std;
 
+class t{
+    public:
+    string str;
+};
+
 int main() {
-    string str = "abc";
-    bitset<24> b(stoi(str));
-    cout<<b<<endl;
+    
+    cout<<sizeof(time_t)<<endl;
     return 0;
 }
