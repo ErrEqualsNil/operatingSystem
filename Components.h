@@ -3,60 +3,53 @@
 #include<iostream>
 #include<fstream>
 
+enum UnitStatus {
+    isFile,
+    isFolder,
+    isEmpty
+};
+
 class Address{
     // 地址，24位，前14位表示block， 后10位表示block中位置
-    private:
-    std::bitset<24> addr;
     public:
-    Address();
-    std::string addressToString();
-    bool stringToAddress(std::string str);
+    char addr[3]; // 每位char表示1byte = 8位， 使用时注意转回来处理
+    // Address(); //构造函数
+    int getBlockPos(); // 获取地址对应的块的序号（前14位组成的int）
+    int getPos(); // 获取地址对应的块内序号 （后10位组成的int）
 };
 
 class Unit{
     // Dirent使用的单位，包含名称及对应的inode/dirent首位地址
     public:
-    const int 
-    string fileName;
+    char fileName[24]; // 限长24
     Address addr;
-    bool isFile;
+    UnitStatus status;
 };
 
 class Dirent{
-    private:
-    std::vector<Unit> units;
-    int numUnits;
-    
     public:
-    Dirent();
+    Unit units[16]; 
+    Dirent(); //需要初始化units的status为isEmpty
     void listUnit();
     void addNewUnit(Unit newUnit);
     void deleteUnit(std::string unitName);
 };
 
 class INode{
-    private:
+    public:
     int fileLength; //对应文件长度， 以kb为单位
     time_t mtime; // 修改时间
     time_t ctime; // 创建时间
     time_t atime; // 上次访问时间
     int linkNum; // 链接数
-    std::vector<Address> directBlockAddress;
-    int numDirectBlock;
-    std::vector<Address> indirectblockAddress;
-    int numIndirectBlock;
-
-    public:
-    INode();
+    Address directBlockAddress[10]; //如果指向0块0个，则认为是空
+    int numDirect;
+    Address indirectblockAddress; //如果指向0块0个，则认为是空
+    int numInDirectBlock;
+    
     void createINode(int kbLength);
-    void setctime(time_t target_time); 
-    void setmtime(time_t target_time); 
-    void setatime(time_t target_time); 
     void addLinkNum();
     void deleteLinkNum();
-    time_t getctime();
-    time_t getmtime();
-    time_t getatime();
     int getFileLength();
     int getLinkNum();
     std::vector<Address> getAllBlockAddress();

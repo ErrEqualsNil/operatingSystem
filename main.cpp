@@ -1,17 +1,13 @@
 #include <iostream>
-#include<bitset>
+#include <bitset>
 #include <vector>
 #include <fstream>
+#include "Components.h"
 
 using namespace std;
 
-class t{
-    public:
-    string str;
-};
-
 int main() {
-    
-    cout<<sizeof(time_t)<<endl;
+    INode a;
+    cout<<sizeof(a);
     return 0;
 }
