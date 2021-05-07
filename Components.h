@@ -58,9 +58,9 @@ class INode{
 };
 
 class DiskController{
-    private:
-    std::fstream disk;
     public:
+    std::fstream disk;
+    const std::string FILE_NAME = "disk.dat";
     DiskController();
     INode readINode(Address addr);
     Dirent readDirent(Address addr);
