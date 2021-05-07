@@ -13,7 +13,7 @@ class Address{
     // 地址，24位，前14位表示block， 后10位表示block中位置
     public:
     char addr[3]; // 每位char表示1byte = 8位， 使用时注意转回来处理
-    // Address(); //构造函数
+    Address(); //构造函数
     int getBlockPos(); // 获取地址对应的块的序号（前14位组成的int）
     int getPos(); // 获取地址对应的块内序号 （后10位组成的int）
 };
