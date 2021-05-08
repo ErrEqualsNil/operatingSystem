@@ -30,7 +30,8 @@ class Unit{
 class Dirent{
     public:
     Unit units[16]; 
-    Dirent(); //需要初始化units的status为isEmpty , 设置第0个为“.”目录; 第1个为".."目录
+    Dirent(); //默认初始化， 将units填充并空置，status设为isEmpty
+    Dirent(Address cur, Address prev); //初始化为新的目录，cur为该dirent起始地址， prev为上级dirent起始地址，并初始化unit[0]为 . ; unit[1]为 ..
     void listUnit();
     void addNewUnit(Unit newUnit);
     void deleteUnit(std::string unitName);
