@@ -1,6 +1,7 @@
 #include "Components.h"
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 const int FILE_LENGTH_BYTE = 16 * 1024 * 1024;
@@ -94,5 +95,32 @@ void DiskController::writeINode(INode node, Address addr){
     }
     disk.seekp(addr.AddrToInt(), std::ios::beg);
     disk.write((char*)&node, sizeof(node));
+    return;
+}
+
+void DiskController::writeDirent(Dirent dir, Address addr){
+    int blockpos = addr.getBlockPos();
+    int pos = addr.getPos();
+    if (addr.AddrToInt() < DIRENT_AREA_BEGIN 
+        || addr.AddrToInt() > DIRENT_AREA_END
+        || pos % DIRENT_LENGTH != 0) {  
+        std::cout<<"Write Dirent Fail, addr: "<<addr.AddrToInt()<<std::endl;
+        return;
+    }
+    disk.seekp(addr.AddrToInt(), std::ios::beg);
+    disk.write((char*)&dir, sizeof(dir));
+    return;
+}
+
+void DiskController::writeBlock(Address addr){
+    if (addr.AddrToInt() < BLOCK_AREA_BEGIN 
+        || addr.AddrToInt() > BLOCK_AREA_END) {  
+        std::cout<<"Write Block Fail, addr: "<<addr.AddrToInt()<<std::endl;
+        return;
+    }
+    char fillCharacter = rand();
+    for(int i=addr.AddrToInt();i<addr.AddrToInt() + BLOCK_LENGTH; i++){
+        disk.write(&fillCharacter, sizeof(fillCharacter));
+    }
     return;
 }
