@@ -16,6 +16,7 @@ class Address{
     Address(); //构造函数
     int getBlockPos(); // 获取地址对应的块的序号（前14位组成的int）
     int getPos(); // 获取地址对应的块内序号 （后10位组成的int）
+    void intToAddr(); // 将byte序号转换为地址， eg. 序号1025 -> block 1 pos 1
 };
 
 class Unit{
