@@ -29,7 +29,7 @@ class Unit{
 class Dirent{
     public:
     Unit units[16]; 
-    Dirent(); //需要初始化units的status为isEmpty
+    Dirent(); //需要初始化units的status为isEmpty , 设置第0个为“.”目录; 第1个为".."目录
     void listUnit();
     void addNewUnit(Unit newUnit);
     void deleteUnit(std::string unitName);
