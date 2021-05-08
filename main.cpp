@@ -2,11 +2,12 @@
 #include <bitset>
 #include <vector>
 #include <fstream>
-#include "implements.h"
+#include "Components.h"
+//#include "implements.h"
 
 using namespace std;
 
 int main() {
-    DiskController dc = DiskController();
+    cout<<sizeof(Dirent)<<endl;
     return 0;
 }

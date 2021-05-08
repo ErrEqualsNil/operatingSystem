@@ -16,7 +16,7 @@ class Address{
     Address(); //构造函数
     int getBlockPos(); // 获取地址对应的块的序号（前14位组成的int）
     int getPos(); // 获取地址对应的块内序号 （后10位组成的int）
-    void intToAddr(); // 将byte序号转换为地址， eg. 序号1025 -> block 1 pos 1
+    void intToAddr(int num); // 将byte序号转换为地址， eg. 序号1025 -> block 1 pos 1
 };
 
 class Unit{
@@ -29,12 +29,13 @@ class Unit{
 
 class Dirent{
     public:
-    Unit units[16]; 
+    const int MAX_NUM_UNITS = 16;
+    Unit units[MAX_NUM_UNITS]; 
     Dirent(); //默认初始化， 将units填充并空置，status设为isEmpty
     Dirent(Address cur, Address prev); //初始化为新的目录，cur为该dirent起始地址， prev为上级dirent起始地址，并初始化unit[0]为 . ; unit[1]为 ..
     void listUnit();
     void addNewUnit(Unit newUnit);
-    void deleteUnit(std::string unitName);
+    void deleteUnit(char* unitName);
 };
 
 class INode{
@@ -75,9 +76,9 @@ class DiskController{
 class Controller {
     private:
     Dirent currentDir;
-    std::vector<Address> idleDirentAddr;
-    std::vector<Address> idleINodeAddr;
-    std::vector<Address> idleStoreAddr;
+    std::vector<Address> idleDirentAddrs;
+    std::vector<Address> idleINodeAddrs;
+    std::vector<Address> idleStoreAddrs;
     public:
     Controller();
     void initDisk();  
