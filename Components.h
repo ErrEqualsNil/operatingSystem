@@ -17,6 +17,7 @@ class Address{
     int getBlockPos(); // 获取地址对应的块的序号（前14位组成的int）
     int getPos(); // 获取地址对应的块内序号 （后10位组成的int）
     void intToAddr(int num); // 将byte序号转换为地址， eg. 序号1025 -> block 1 pos 1
+    int AddrToInt(); // 将地址转为byte序号
 };
 
 class Unit{
@@ -30,7 +31,7 @@ class Unit{
 class Dirent{
     public:
     const int MAX_NUM_UNITS = 16;
-    Unit units[MAX_NUM_UNITS]; 
+    Unit units[16]; 
     Dirent(); //默认初始化， 将units填充并空置，status设为isEmpty
     Dirent(Address cur, Address prev); //初始化为新的目录，cur为该dirent起始地址， prev为上级dirent起始地址，并初始化unit[0]为 . ; unit[1]为 ..
     void listUnit();

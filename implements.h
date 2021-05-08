@@ -51,3 +51,48 @@ DiskController::DiskController() {
     }
     disk.open(FILE_NAME, std::ios::in | std::ios::out | std::ios::binary);
 }
+
+INode DiskController::readINode(Address addr){
+    int pos = 1024 * addr.getBlockPos() + addr.getPos();
+    disk.seekg(pos, std::ios::beg);
+    INode target;
+    disk.read((char*)&target, sizeof(target));
+    return target;
+}
+
+Dirent DiskController::readDirent(Address addr){
+    int pos = 1024 * addr.getBlockPos() + addr.getPos();
+    disk.seekg(pos, std::ios::beg);
+    Dirent target;
+    disk.read((char*)&target, sizeof(target));
+    return target;
+}
+
+std::string DiskController::readBlock(Address addr){
+    if(addr.getPos() != 0){
+        return "";
+    }
+    int pos = 1024 * addr.getBlockPos();
+    std::string target;
+    char character;
+    disk.seekg(pos, std::ios::beg);
+    for(int i = pos; i < pos + 1024; i++){
+        disk.read(&character, sizeof(character));
+        target = target + character;
+    }
+    return target;
+}
+
+void DiskController::writeINode(INode node, Address addr){
+    int blockpos = addr.getBlockPos();
+    int pos = addr.getPos();
+    if (addr.AddrToInt() < INODE_AREA_BEGIN 
+        || addr.AddrToInt() > INODE_AREA_END
+        || pos % INODE_LENGTH != 0) {  
+        std::cout<<"Write INode Fail, addr: "<<addr.AddrToInt()<<std::endl;
+        return;
+    }
+    disk.seekp(addr.AddrToInt(), std::ios::beg);
+    disk.write((char*)&node, sizeof(node));
+    return;
+}
