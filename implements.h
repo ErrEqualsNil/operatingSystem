@@ -195,6 +195,6 @@ Controller::Controller(){
     diskController = DiskController();
     Dirent tmp;
     for(int i=DIRENT_AREA_BEGIN ;i < DIRENT_AREA_END; i+= DIRENT_LENGTH){
-        
+        diskController.
     }
 }
