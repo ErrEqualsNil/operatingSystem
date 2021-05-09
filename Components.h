@@ -75,11 +75,13 @@ class DiskController{
 class Controller {
     public:
     Dirent currentDir;
+    std::vector<std::string> path;
     DiskController diskController;
     std::vector<Address> idleDirentAddrs;
     std::vector<Address> idleINodeAddrs;
-    std::vector<Address> idleStoreAddrs;
+    std::vector<Address> idleBlockAddrs;
     Controller();
+    std::string getPath();
     void touch(std::string fileDir, int fileSize_kb);
     void del(std::string fileDir);
     void cd(std::string targetDir);
