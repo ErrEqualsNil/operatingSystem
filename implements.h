@@ -190,3 +190,11 @@ void DiskController::writeBlock(Address addr){
 
 
 //以下是Controller实现
+
+Controller::Controller(){
+    diskController = DiskController();
+    Dirent tmp;
+    for(int i=DIRENT_AREA_BEGIN ;i < DIRENT_AREA_END; i+= DIRENT_LENGTH){
+        
+    }
+}
