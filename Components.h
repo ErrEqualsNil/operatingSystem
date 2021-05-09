@@ -45,20 +45,18 @@ class INode{
     time_t mtime; // 修改时间
     time_t ctime; // 创建时间
     time_t atime; // 上次访问时间
-    int linkNum; // 链接数
+    int linkNum; // 链接数 -> update: 好像不需要链接，对于复制关系直接把数据块Addr同步过去算了，做链接有点复杂（但是别删这个变量，免得影响数据大小规划）
     Address directBlockAddress[10]; //如果指向0块0个，则认为是空
     int numDirect;
     Address indirectblockAddress; //如果指向0块0个，则认为是空
     int numInDirectBlock;
-    
-    void createINode(int kbLength);
+    INode(); //空INode， 所有值置0
+    INode(int kbLength); //建立具有kbLength长度的INode
     void addLinkNum();
     void deleteLinkNum();
     int getFileLength();
     int getLinkNum();
     std::vector<Address> getAllBlockAddress();
-    void loadFromString(std::string str);
-    std::string writeToString();
 };
 
 class DiskController{

@@ -37,7 +37,7 @@ int Address::AddrToInt(){
 
 //以下是Unit实现
 Unit::Unit(){
-    memset(fileName, 0, sizeof(fileName));
+    strcpy(fileName, "");
     addr = Address();
     status = isEmpty;
 }
@@ -48,14 +48,32 @@ Unit::Unit(){
 Dirent::Dirent(){
     Unit emptyUnit = Unit();
     for(int i=0; i<MAX_NUM_UNITS ;i++){
-        units[0] = emptyUnit;
+        units[i] = emptyUnit;
+    }
+}
+Dirent::Dirent(Address cur, Address prev){
+    Unit curUnit = Unit();
+    strcpy(curUnit.fileName, ".");
+    curUnit.addr = cur;
+    curUnit.status = isFolder;
+    units[0] = curUnit;
+
+    Unit prevUnit = Unit();
+    strcpy(prevUnit.fileName, "..");
+    prevUnit.addr = prev;
+    prevUnit.status = isFolder;
+    units[1] = prevUnit;
+
+    Unit emptyUnit = Unit();
+    for (int i=2; i<MAX_NUM_UNITS; i++){
+        units[i] = emptyUnit;
     }
 }
 
 
 //以下是INode实现
 
-
+//todo
 
 
 //以下是DiskController实现
