@@ -23,6 +23,7 @@ class Address{
 class Unit{
     // Dirent使用的单位，包含名称及对应的inode/dirent首位地址
     public:
+    Unit();
     char fileName[24]; // 限长24
     Address addr;
     UnitStatus status;
@@ -30,7 +31,6 @@ class Unit{
 
 class Dirent{
     public:
-    const int MAX_NUM_UNITS = 16;
     Unit units[16]; 
     Dirent(); //默认初始化， 将units填充并空置，status设为isEmpty
     Dirent(Address cur, Address prev); //初始化为新的目录，cur为该dirent起始地址， prev为上级dirent起始地址，并初始化unit[0]为 . ; unit[1]为 ..

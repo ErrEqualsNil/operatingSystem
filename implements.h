@@ -14,6 +14,51 @@ const int INODE_LENGTH = 64;
 const int BLOCK_AREA_BEGIN = 2 * 1024 * 1024;
 const int BLOCK_AREA_END = 16 * 1024 * 1024 - 1024; // 最后一个Block开始位置
 const int BLOCK_LENGTH = 1024;
+const int MAX_NUM_UNITS = 16;
+
+//以下是Address实现
+
+Address::Address(){
+    memset(addr, 0, sizeof(addr));
+}
+int Address::getBlockPos(){
+
+}
+int Address::getPos(){
+
+}
+void Address::intToAddr(int num){
+
+}
+int Address::AddrToInt(){
+
+}
+
+
+//以下是Unit实现
+Unit::Unit(){
+    memset(fileName, 0, sizeof(fileName));
+    addr = Address();
+    status = isEmpty;
+}
+
+
+//以下是Dirent实现
+
+Dirent::Dirent(){
+    Unit emptyUnit = Unit();
+    for(int i=0; i<MAX_NUM_UNITS ;i++){
+        units[0] = emptyUnit;
+    }
+}
+
+
+//以下是INode实现
+
+
+
+
+//以下是DiskController实现
 
 DiskController::DiskController() {
     struct stat buffer;
@@ -124,3 +169,6 @@ void DiskController::writeBlock(Address addr){
     }
     return;
 }
+
+
+//以下是Controller实现
