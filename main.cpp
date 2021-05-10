@@ -8,7 +8,7 @@
 using namespace std;
 
 int main() {
-    Controller controller = Controller();
-    controller.ls();
+    Controller c;
+    c.ls();
     return 0;
 }

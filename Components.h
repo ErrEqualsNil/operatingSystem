@@ -52,10 +52,7 @@ class INode{
     int numInDirectBlock;
     INode(); //空INode， 所有值置0
     INode(int kbLength); //建立具有kbLength长度的INode
-    void addLinkNum();
-    void deleteLinkNum();
     int getFileLength();
-    int getLinkNum();
     std::vector<Address> getAllBlockAddress();
 };
 
@@ -75,6 +72,7 @@ class DiskController{
 class Controller {
     public:
     Dirent currentDir;
+    Dirent rootDir;
     std::vector<std::string> path;
     DiskController diskController;
     std::vector<Address> idleDirentAddrs;
@@ -82,9 +80,11 @@ class Controller {
     std::vector<Address> idleBlockAddrs;
     Controller();
     std::string getPath();
-    void touch(std::string fileDir, int fileSize_kb);
+    int getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent& res);
+    void touch(std::string fileDir, int fileSize);
+    void mkdir(std::string folderDir);
     void del(std::string fileDir);
-    void cd(std::string targetDir);
+    void cd(Dirent startDir, std::string targetDir);
     void ls();
     void cp(std::string srcDir, std::string desDir);
     void sum();

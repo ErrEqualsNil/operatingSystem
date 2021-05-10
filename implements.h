@@ -15,6 +15,7 @@ const int BLOCK_AREA_BEGIN = 2 * 1024 * 1024;
 const int BLOCK_AREA_END = 16 * 1024 * 1024 - 1024; // 最后一个Block开始位置
 const int BLOCK_LENGTH = 1024;
 const int MAX_NUM_UNITS = 16;
+const int MAX_FILE_NAME = 23;
 
 //以下是Address实现
 
@@ -77,6 +78,9 @@ INode::INode(){
     linkNum = 0;
     numDirect = numInDirectBlock = 0;
     fileLength = 0;
+}
+INode::INode(int fileSize_kb){
+    
 }
 
 
@@ -229,17 +233,14 @@ Controller::Controller(){
 
     tmpAddr.intToAddr(0);
     currentDir = diskController.readDirent(tmpAddr);
+    rootDir = diskController.readDirent(tmpAddr);
+    path.push_back("~");
 }
 
 std::string Controller::getPath(){
     std::string str;
-    if(path.size() == 0) {
-        return "/";
-    }
-    else{
-        for(std::string i : path){
-            str = str + "/" + i;
-        }
+    for(std::string folderName : path){
+        std::cout<<folderName<<" > "<<std::endl;
     }
     return str;
 }
@@ -259,4 +260,89 @@ void Controller::ls(){
             std::cout<<currentDir.units[i].fileName<<" "<<file.fileLength<<"KB "<<std::endl;
         }
     }
+}
+
+void Controller::sum(){
+    std::cout<<"Remain Store Space : "<<idleBlockAddrs.size()<<" KB"<<std::endl;
+}
+
+void split(const std::string& s,
+    std::vector<std::string>& sv,
+                  const char* delim = " ") {
+    sv.clear();                                 
+    char* buffer = new char[s.size() + 1];      
+    buffer[s.size()] = '\0';
+    std::copy(s.begin(), s.end(), buffer);      
+    char* p = std::strtok(buffer, delim);       
+    do {
+        sv.push_back(p);                        
+    } while ((p = std::strtok(NULL, delim)));   
+    delete[] buffer;
+    return;
+}
+
+int Controller::getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent& res){
+    res = curDir;
+    for(std::string level : levels){
+        bool ok = false;
+        for(int i=0; i<MAX_NUM_UNITS; i++){
+            if(strcmp(res.units[i].fileName, level.c_str()) != 0){
+                continue;
+            }
+            res = diskController.readDirent(res.units[i].addr);
+            ok = true;
+            break;
+        }
+        if(!ok){
+            return -1;
+        }
+    }
+    return 0;
+} 
+
+void Controller::cd(Dirent startDir, std::string targetPath){
+    if(targetPath == ""){
+        return ;
+    }
+    if(targetPath[0] == '~'){
+        Controller::cd(rootDir, targetPath.substr(2, targetPath.size() - 2));
+    }
+    std::vector<std::string> splits;
+    split(targetPath, splits, "/");
+    Dirent finishDir = startDir;
+    getTmpDir(splits, startDir, finishDir);
+    currentDir = finishDir;
+    return ;
+}
+
+void Controller::touch(std::string fileDir, int fileSize){
+    std::vector<std::string> splits;
+    split(fileDir, splits, "/");
+    std::string fileName = splits.back();
+    if(fileName.length() > MAX_FILE_NAME){
+        std::cout<<"File name so long"<<std::endl;
+        return ;
+    }
+    splits.pop_back();
+    Dirent targetDir;
+    getTmpDir(splits, currentDir, targetDir);
+    INode newFileINode = INode(fileSize);
+    Address idleAddr = idleINodeAddrs.back();
+    idleINodeAddrs.pop_back();
+
+    bool ok = false;
+    for(int i=0; i<MAX_NUM_UNITS; i++){
+        if (targetDir.units[i].status == isEmpty){
+            targetDir.units[i].addr = idleAddr;
+            strcpy(targetDir.units[i].fileName, fileName.c_str());
+            targetDir.units[i].status = isFile;
+            diskController.writeINode(newFileINode, idleAddr);
+            ok = true;
+            break;
+        }
+    }
+    if(!ok){
+        std::cout<<"Failed to add file to current Dir"<<std::endl;
+    }
+    return ;
 }
