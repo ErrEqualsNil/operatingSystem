@@ -81,12 +81,12 @@ class Controller {
     Controller();
     std::string getPath();
     int getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent& res);
-    void touch(std::string fileDir, int fileSize);
-    void mkdir(std::string folderDir);
-    void del(std::string fileDir);
+    void touch(std::string fileDir, int fileSize); 
+    void mkdir(std::string folderDir); //todo
+    void del(std::string fileDir); //todo
     void cd(Dirent startDir, std::string targetDir);
     void ls();
-    void cp(std::string srcDir, std::string desDir);
+    void cp(std::string srcDir, std::string desDir); //todo
     void sum();
-    void cat(std::string fileDir);
+    void cat(std::string fileDir); //todo
 };

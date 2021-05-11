@@ -325,24 +325,55 @@ void Controller::touch(std::string fileDir, int fileSize){
     }
     splits.pop_back();
     Dirent targetDir;
-    getTmpDir(splits, currentDir, targetDir);
+    if(getTmpDir(splits, currentDir, targetDir) == -1){
+        std::cout<<"Invalid Path!"<<std::endl;
+        return ;
+    }
     INode newFileINode = INode(fileSize);
     Address idleAddr = idleINodeAddrs.back();
-    idleINodeAddrs.pop_back();
-
-    bool ok = false;
-    for(int i=0; i<MAX_NUM_UNITS; i++){
-        if (targetDir.units[i].status == isEmpty){
-            targetDir.units[i].addr = idleAddr;
-            strcpy(targetDir.units[i].fileName, fileName.c_str());
-            targetDir.units[i].status = isFile;
-            diskController.writeINode(newFileINode, idleAddr);
-            ok = true;
-            break;
+    
+    int emptyPos = MAX_NUM_UNITS;
+    for(int i=MAX_NUM_UNITS - 1; i>=0; i--){
+        if(targetDir.units[i].status == isEmpty){
+            emptyPos = i;
+        }
+        if(strcmp(targetDir.units[i].fileName, fileName.c_str()) == 0){
+            std::cout<<"Same name file exists!"<<std::endl;
+            return ;
         }
     }
-    if(!ok){
+    if(emptyPos == MAX_NUM_UNITS){
         std::cout<<"Failed to add file to current Dir"<<std::endl;
+        return ;
     }
+
+    targetDir.units[emptyPos].addr = idleAddr;
+    strcpy(targetDir.units[emptyPos].fileName, fileName.c_str());
+    targetDir.units[emptyPos].status = isFile;
+    diskController.writeINode(newFileINode, idleAddr);
+    idleINodeAddrs.pop_back();
     return ;
+}
+
+
+void Controller::cat(std::string fileDir){
+    std::vector<std::string> splits;
+    split(fileDir, splits, "/");
+    std::string fileName = splits.back();
+    splits.pop_back();
+    Dirent targetDir;
+    if (getTmpDir(splits, currentDir, targetDir) == -1){
+        std::cout<<"Invalid Path!"<<std::endl;
+    }
+    for(int i=0;i<MAX_FILE_NAME; i++){
+        bool ok = false;
+        if(targetDir.units[i].status == isEmpty){
+            continue;
+        }
+        if(strcmp(targetDir.units[i].fileName, fileName.c_str()) != 0){
+            continue;
+        }
+        //todo
+    }
+
 }
