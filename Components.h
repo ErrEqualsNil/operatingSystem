@@ -51,7 +51,7 @@ class INode{
     Address indirectblockAddress; //如果指向0块0个，则认为是空
     int numInDirectBlock;
     INode(); //空INode， 所有值置0
-    INode(int kbLength); //建立具有kbLength长度的INode
+    INode(int kbLength, std::vector<Address> idleBlockAddrs); //建立具有kbLength长度的INode
     int getFileLength();
     std::vector<Address> getAllBlockAddress();
 };
@@ -64,9 +64,11 @@ class DiskController{
     INode readINode(Address addr);
     Dirent readDirent(Address addr);
     std::string readBlock(Address addr);
+    Address readAddress(Address addr);
     void writeINode(INode node, Address addr);
     void writeDirent(Dirent dir, Address addr);
     void writeBlock(Address addr);
+    void writeAddress(Address address, Address addr); // 将address写入addr地址
 };
 
 class Controller {

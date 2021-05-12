@@ -221,6 +221,13 @@ std::string DiskController::readBlock(Address addr)
     return target;
 }
 
+Address DiskController::readAddress(Address addr){
+    Address res;
+    disk.seekg(addr.AddrToInt(), std::ios::beg);
+    disk.read((char*)&res, sizeof(res));
+    return res;
+}
+
 void DiskController::writeINode(INode node, Address addr)
 {
     int blockpos = addr.getBlockPos();
@@ -262,6 +269,11 @@ void DiskController::writeBlock(Address addr)
         disk.write(&fillCharacter, sizeof(fillCharacter));
     }
     return;
+}
+
+void DiskController::writeAddress(Address address, Address addr){
+    disk.seekp(addr.AddrToInt(), std::ios::beg);
+    disk.write((char*)&address, sizeof(address));
 }
 
 //以下是Controller实现
@@ -463,9 +475,9 @@ void Controller::cat(std::string fileDir)
     {
         std::cout << "Invalid Path!" << std::endl;
     }
+    bool ok = false;
     for (int i = 0; i < MAX_FILE_NAME; i++)
     {
-        bool ok = false;
         if (targetDir.units[i].status == isEmpty)
         {
             continue;
@@ -474,6 +486,20 @@ void Controller::cat(std::string fileDir)
         {
             continue;
         }
-        //todo
+        if (targetDir.units[i].status == isFolder){
+            continue;
+        }
+        ok = true;
+        INode targetFileINode;
+        targetFileINode = diskController.readINode(targetDir.units[i].addr);
+        std::vector<Address> blockAddrs;
+        blockAddrs = targetFileINode.getAllBlockAddress();
+        for(Address addr : blockAddrs){
+            std::cout<<diskController.readBlock(addr);
+        }
+        std::cout<<std::endl;
+    }
+    if(!ok){
+        std::cout<<"Invalid Path"<<std::endl;
     }
 }
