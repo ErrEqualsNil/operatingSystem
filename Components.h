@@ -35,8 +35,7 @@ class Dirent{
     Dirent(); //默认初始化， 将units填充并空置，status设为isEmpty
     Dirent(Address cur, Address prev); //初始化为新的目录，cur为该dirent起始地址， prev为上级dirent起始地址，并初始化unit[0]为 . ; unit[1]为 ..
     void listUnit();
-    void addNewUnit(Unit newUnit);
-    void deleteUnit(char* unitName);
+    int findUnitIndex(const char* fileName, UnitStatus status);
 };
 
 class INode{
@@ -52,7 +51,6 @@ class INode{
     int numInDirectBlock;
     INode(); //空INode， 所有值置0
     INode(int kbLength, std::vector<Address> idleBlockAddrs); //建立具有kbLength长度的INode
-    int getFileLength();
     std::vector<Address> getAllBlockAddress();
 };
 
@@ -83,12 +81,13 @@ class Controller {
     Controller();
     std::string getPath();
     int getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent& res);
+    int changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename);
     void touch(std::string fileDir, int fileSize); 
     void mkdir(std::string folderDir); //todo
     void del(std::string fileDir); //todo
     void cd(Dirent startDir, std::string targetDir);
     void ls();
-    void cp(std::string srcDir, std::string desDir); //todo
+    void cp(std::string srcPath, std::string desPath); //todo
     void sum();
-    void cat(std::string fileDir); //todo
+    void cat(std::string fileDir); 
 };

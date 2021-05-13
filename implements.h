@@ -117,12 +117,27 @@ Dirent::Dirent(Address cur, Address prev)
         units[i] = emptyUnit;
     }
 }
+
 void Dirent::listUnit()
 {
     for (int i = 0; i < MAX_NUM_UNITS; i++)
     {
         cout << units[i].fileName << "  " << units[i].addr.addr << "  " << units[i].status << endl;
     }
+}
+
+int Dirent::findUnitIndex(const char* fileName, UnitStatus status){
+    int idx = 0;
+    for(; idx < MAX_FILE_NAME; idx++){
+        if(units[idx].status != status){
+            continue;
+        }
+        if(strcmp(units[idx].fileName, fileName) != 0){
+            continue;
+        }
+        return idx;
+    }
+    return -1;
 }
 
 //以下是INode实现
@@ -399,6 +414,17 @@ int Controller::getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent
     return 0;
 }
 
+int Controller::changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename){
+    std::vector<std::string> splits;
+    split(dir, splits, "/");
+    filename = splits.back();
+    splits.pop_back();
+    if(getTmpDir(splits, currentDir, targetDir) == -1){
+        return -1;
+    }
+    return 0;
+}
+
 void Controller::cd(Dirent startDir, std::string targetPath)
 {
     if (targetPath == "")
@@ -419,22 +445,19 @@ void Controller::cd(Dirent startDir, std::string targetPath)
 
 void Controller::touch(std::string fileDir, int fileSize)
 {
-    std::vector<std::string> splits;
-    split(fileDir, splits, "/");
-    std::string fileName = splits.back();
+    std::string fileName;
+    Dirent targetDir;
+    if (changeDirToDirentAndFilename(fileDir, currentDir, targetDir, fileName) == -1)
+    {
+        std::cout << "Invalid Path!" << std::endl;
+        return;
+    }
     if (fileName.length() > MAX_FILE_NAME)
     {
         std::cout << "File name so long" << std::endl;
         return;
     }
-    splits.pop_back();
-    Dirent targetDir;
-    if (getTmpDir(splits, currentDir, targetDir) == -1)
-    {
-        std::cout << "Invalid Path!" << std::endl;
-        return;
-    }
-    INode newFileINode = INode(fileSize);
+    INode newFileINode = INode(fileSize, idleBlockAddrs);
     Address idleAddr = idleINodeAddrs.back();
 
     int emptyPos = MAX_NUM_UNITS;
@@ -466,12 +489,9 @@ void Controller::touch(std::string fileDir, int fileSize)
 
 void Controller::cat(std::string fileDir)
 {
-    std::vector<std::string> splits;
-    split(fileDir, splits, "/");
-    std::string fileName = splits.back();
-    splits.pop_back();
     Dirent targetDir;
-    if (getTmpDir(splits, currentDir, targetDir) == -1)
+    std::string filename;
+    if (changeDirToDirentAndFilename(fileDir, currentDir, targetDir, filename) == -1)
     {
         std::cout << "Invalid Path!" << std::endl;
     }
@@ -482,7 +502,7 @@ void Controller::cat(std::string fileDir)
         {
             continue;
         }
-        if (strcmp(targetDir.units[i].fileName, fileName.c_str()) != 0)
+        if (strcmp(targetDir.units[i].fileName, filename.c_str()) != 0)
         {
             continue;
         }
@@ -502,4 +522,25 @@ void Controller::cat(std::string fileDir)
     if(!ok){
         std::cout<<"Invalid Path"<<std::endl;
     }
+}
+
+void Controller::cp(std::string srcPath, std::string desPath){
+    Dirent srcDir, desDir;
+    std::string srcFilename;
+    std::vector<std::string> desSplits;
+    split(desPath, desSplits, "/");
+    if(changeDirToDirentAndFilename(srcPath, currentDir, srcDir, srcFilename) == -1 ||
+    getTmpDir(desSplits, currentDir, desDir) == -1){
+        std::cout<<"Invalid Path"<<std::endl;
+        return ;
+    }
+    int srcUnitIdx;
+    srcUnitIdx = srcDir.findUnitIndex(srcFilename.c_str(), isFile);
+    if (srcUnitIdx == -1){
+        std::cout<<"Invalid Path"<<std::endl;
+        return ;
+    }
+    INode src;
+    src = diskController.readINode(srcDir.units[srcUnitIdx].addr);
+    //todo
 }
