@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <bitset>
+#include <ctime>
 using namespace std;
 const int FILE_LENGTH_BYTE = 16 * 1024 * 1024;
 const int DIRENT_AREA_BEGIN = 0;
@@ -547,10 +548,10 @@ void Controller::cp(std::string srcPath, std::string desPath){
     }
 
     INode des;
-    des.ctime = des.mtime = des.atime = std::time(0);
+    des.ctime = des.mtime = des.atime = time(0);
     des.fileLength = src.fileLength;
     des.linkNum = 1;
-    des.numDirect = src.numDirect;
+    des.numDirect = src.numDirect;  
     des.numInDirectBlock = src.numInDirectBlock;
     for(int i=0;i<src.numDirect; i++){
         Address addr = idleBlockAddrs.back();
