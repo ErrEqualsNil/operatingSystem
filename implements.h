@@ -542,5 +542,35 @@ void Controller::cp(std::string srcPath, std::string desPath){
     }
     INode src;
     src = diskController.readINode(srcDir.units[srcUnitIdx].addr);
-    //todo
+    if (idleBlockAddrs.size() < src.fileLength + 1){
+        std::cout<<"Not enough Space"<<std::endl;
+    }
+
+    INode des;
+    des.ctime = des.mtime = des.atime = std::time(0);
+    des.fileLength = src.fileLength;
+    des.linkNum = 1;
+    des.numDirect = src.numDirect;
+    des.numInDirectBlock = src.numInDirectBlock;
+    for(int i=0;i<src.numDirect; i++){
+        Address addr = idleBlockAddrs.back();
+        idleBlockAddrs.pop_back();
+        diskController.writeBlock(addr);
+        des.directBlockAddress[i] = addr;
+    }   
+
+    if(src.numInDirectBlock == 0){
+        return ;
+    }
+    
+    Address addrBlockStartPos = idleBlockAddrs.back();
+    idleBlockAddrs.pop_back(); 
+    for(int i=0;i<src.numInDirectBlock; i++){
+        Address contentBlock = idleBlockAddrs.back();
+        Address contentBlockAddrPos;
+        contentBlockAddrPos.intToAddr(addrBlockStartPos.AddrToInt() + i * sizeof(Address));
+        idleBlockAddrs.pop_back();
+        diskController.writeBlock(contentBlock);
+        diskController.writeAddress(contentBlock, contentBlockAddrPos);
+    }
 }

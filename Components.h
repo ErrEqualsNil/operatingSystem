@@ -87,7 +87,7 @@ class Controller {
     void del(std::string fileDir); //todo
     void cd(Dirent startDir, std::string targetDir);
     void ls();
-    void cp(std::string srcPath, std::string desPath); //todo
+    void cp(std::string srcPath, std::string desPath);
     void sum();
     void cat(std::string fileDir); 
 };
