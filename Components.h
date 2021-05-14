@@ -66,6 +66,7 @@ class DiskController{
     void writeINode(INode node, Address addr);
     void writeDirent(Dirent dir, Address addr);
     void writeBlock(Address addr);
+    void clearBlock(Address addr);
     void writeAddress(Address address, Address addr); // 将address写入addr地址
 };
 

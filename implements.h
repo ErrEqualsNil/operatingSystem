@@ -201,8 +201,7 @@ DiskController::DiskController()
     disk.open(FILE_NAME, std::ios::in | std::ios::out | std::ios::binary);
 }
 
-INode DiskController::readINode(Address addr)
-{
+INode DiskController::readINode(Address addr){
     int pos = 1024 * addr.getBlockPos() + addr.getPos();
     disk.seekg(pos, std::ios::beg);
     INode target;
@@ -210,8 +209,7 @@ INode DiskController::readINode(Address addr)
     return target;
 }
 
-Dirent DiskController::readDirent(Address addr)
-{
+Dirent DiskController::readDirent(Address addr){
     int pos = 1024 * addr.getBlockPos() + addr.getPos();
     disk.seekg(pos, std::ios::beg);
     Dirent target;
@@ -221,16 +219,14 @@ Dirent DiskController::readDirent(Address addr)
 
 std::string DiskController::readBlock(Address addr)
 {
-    if (addr.getPos() != 0)
-    {
+    if (addr.getPos() != 0){
         return "";
     }
     int pos = 1024 * addr.getBlockPos();
     std::string target;
     char character;
     disk.seekg(pos, std::ios::beg);
-    for (int i = pos; i < pos + 1024; i++)
-    {
+    for (int i = pos; i < pos + 1024; i++){
         disk.read(&character, sizeof(character));
         target = target + character;
     }
@@ -244,12 +240,10 @@ Address DiskController::readAddress(Address addr){
     return res;
 }
 
-void DiskController::writeINode(INode node, Address addr)
-{
+void DiskController::writeINode(INode node, Address addr){
     int blockpos = addr.getBlockPos();
     int pos = addr.getPos();
-    if (addr.AddrToInt() < INODE_AREA_BEGIN || addr.AddrToInt() > INODE_AREA_END || pos % INODE_LENGTH != 0)
-    {
+    if (addr.AddrToInt() < INODE_AREA_BEGIN || addr.AddrToInt() > INODE_AREA_END || pos % INODE_LENGTH != 0) {
         std::cout << "Write INode Fail, addr: " << addr.AddrToInt() << std::endl;
         return;
     }
@@ -258,12 +252,10 @@ void DiskController::writeINode(INode node, Address addr)
     return;
 }
 
-void DiskController::writeDirent(Dirent dir, Address addr)
-{
+void DiskController::writeDirent(Dirent dir, Address addr){
     int blockpos = addr.getBlockPos();
     int pos = addr.getPos();
-    if (addr.AddrToInt() < DIRENT_AREA_BEGIN || addr.AddrToInt() > DIRENT_AREA_END || pos % DIRENT_LENGTH != 0)
-    {
+    if (addr.AddrToInt() < DIRENT_AREA_BEGIN || addr.AddrToInt() > DIRENT_AREA_END || pos % DIRENT_LENGTH != 0){
         std::cout << "Write Dirent Fail, addr: " << addr.AddrToInt() << std::endl;
         return;
     }
@@ -272,16 +264,25 @@ void DiskController::writeDirent(Dirent dir, Address addr)
     return;
 }
 
-void DiskController::writeBlock(Address addr)
-{
-    if (addr.AddrToInt() < BLOCK_AREA_BEGIN || addr.AddrToInt() > BLOCK_AREA_END)
-    {
+void DiskController::writeBlock(Address addr){
+    if (addr.AddrToInt() < BLOCK_AREA_BEGIN || addr.AddrToInt() > BLOCK_AREA_END){
         std::cout << "Write Block Fail, addr: " << addr.AddrToInt() << std::endl;
         return;
     }
     char fillCharacter = 'p';
-    for (int i = addr.AddrToInt(); i < addr.AddrToInt() + BLOCK_LENGTH; i++)
-    {
+    for (int i = addr.AddrToInt(); i < addr.AddrToInt() + BLOCK_LENGTH; i++){
+        disk.write(&fillCharacter, sizeof(fillCharacter));
+    }
+    return;
+}
+
+void DiskController::clearBlock(Address addr){
+    if (addr.AddrToInt() < BLOCK_AREA_BEGIN || addr.AddrToInt() > BLOCK_AREA_END){
+        std::cout << "Write Block Fail, addr: " << addr.AddrToInt() << std::endl;
+        return;
+    }
+    char fillCharacter = 0;
+    for (int i = addr.AddrToInt(); i < addr.AddrToInt() + BLOCK_LENGTH; i++){
         disk.write(&fillCharacter, sizeof(fillCharacter));
     }
     return;
@@ -574,4 +575,8 @@ void Controller::cp(std::string srcPath, std::string desPath){
         diskController.writeBlock(contentBlock);
         diskController.writeAddress(contentBlock, contentBlockAddrPos);
     }
+}
+
+void Controller::del(std::string fileDir){
+    
 }
