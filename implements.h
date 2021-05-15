@@ -370,15 +370,11 @@ void Controller::ls()
     }
 }
 
-void Controller::sum()
-{
+void Controller::sum(){
     std::cout << "Remain Store Space : " << idleBlockAddrs.size() << " KB" << std::endl;
 }
 
-void split(const std::string &s,
-           std::vector<std::string> &sv,
-           const char *delim = " ")
-{
+void split(const std::string &s, std::vector<std::string> &sv, const char *delim = " "){
     sv.clear();
     char *buffer = new char[s.size() + 1];
     buffer[s.size()] = '\0';
@@ -577,6 +573,68 @@ void Controller::cp(std::string srcPath, std::string desPath){
     }
 }
 
+void Controller::deleteFile(INode fileINode, Address INodeAddr){
+    std::vector<Address> blockAddrs = fileINode.getAllBlockAddress();
+    for(Address blockAddr : blockAddrs){
+        diskController.clearBlock(blockAddr);
+        idleBlockAddrs.push_back(blockAddr);
+    }
+    fileINode.ctime = fileINode.atime = fileINode.mtime = 0;
+    memset(fileINode.directBlockAddress, 0, sizeof(fileINode.directBlockAddress));
+    fileINode.linkNum = 0;
+    fileINode.numDirect = 0;
+    fileINode.indirectblockAddress = Address();
+    fileINode.numInDirectBlock = 0;
+    diskController.writeINode(fileINode, INodeAddr);
+    idleINodeAddrs.push_back(INodeAddr);
+}
+
+void Controller::deleteFolder(Dirent dir, Address direntAddr){
+    for(int i = 2; i < MAX_NUM_UNITS; i++){
+        if(dir.units[i].status == isEmpty){
+            continue;
+        }
+        if(dir.units[i].status == isFile){
+            std::cout<<"Delete "<<dir.units[i].fileName<<std::endl;
+            deleteFile(diskController.readINode(dir.units[i].addr), dir.units[i].addr);
+            dir.units[i].status == isEmpty;
+            memset(dir.units[i].fileName, 0, sizeof(dir.units[i].fileName));
+        }
+        if(dir.units[i].status == isFolder){
+            deleteFolder(diskController.readDirent(dir.units[i].addr), dir.units[i].addr);
+            dir.units[i].status == isEmpty;
+            memset(dir.units[i].fileName, 0, sizeof(dir.units[i].fileName));
+        }
+    }
+    dir.units[0].status = dir.units[1].status = isEmpty;
+    dir.units[0].addr = Address();
+    dir.units[1].addr = Address();
+    memset(dir.units[0].fileName, 0, sizeof(dir.units[0].fileName));
+    memset(dir.units[1].fileName, 0, sizeof(dir.units[1].fileName));
+    diskController.writeDirent(dir, direntAddr);
+    idleDirentAddrs.push_back(direntAddr);
+}
+
 void Controller::del(std::string fileDir){
-    
+    Dirent targetDir;
+    std::string name;
+    changeDirToDirentAndFilename(fileDir, currentDir, targetDir, name);
+    bool ok = false;
+    for(int i = 0; i < MAX_NUM_UNITS; i++){
+        if(targetDir.units[i].status == isEmpty){
+            continue;
+        }
+        if(strcmp(targetDir.units[i].fileName, name.c_str()) == 0){
+            ok = true;
+            if(targetDir.units[i].status == isFile){
+                deleteFile(diskController.readINode(targetDir.units[i].addr), targetDir.units[i].addr);
+            }
+            else if (targetDir.units[i].status == isFolder){
+                deleteFolder(diskController.readDirent(targetDir.units[i].addr), targetDir.units[i].addr);
+            }
+        }
+    }
+    if (!ok){
+        std::cout<<"Invalid Path!"<<std::endl;
+    }
 }

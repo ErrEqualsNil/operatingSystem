@@ -85,7 +85,9 @@ class Controller {
     int changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename);
     void touch(std::string fileDir, int fileSize); 
     void mkdir(std::string folderDir); //todo
-    void del(std::string fileDir); //todo
+    void del(std::string fileDir);
+    void deleteFile(INode fileINode, Address INodeAddr);
+    void deleteFolder(Dirent dir, Address direntAddr);
     void cd(Dirent startDir, std::string targetDir);
     void ls();
     void cp(std::string srcPath, std::string desPath);
