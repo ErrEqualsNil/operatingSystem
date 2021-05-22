@@ -297,8 +297,9 @@ void DiskController::writeAddress(Address address, Address addr){
 
 Controller::Controller()
 {
+    std::cout<<"Init File System "<<std::endl;
+    std::cout<<"Design & Implement: 彭鹏 林师言"<<std::endl;
     Address tmpAddr;
-
     Dirent tmpDir;
     for (int i = DIRENT_AREA_BEGIN; i < DIRENT_AREA_END; i += DIRENT_LENGTH)
     {
@@ -637,4 +638,82 @@ void Controller::del(std::string fileDir){
     if (!ok){
         std::cout<<"Invalid Path!"<<std::endl;
     }
+}
+
+void Controller::exit() {
+    std::cout<<"Welcome Back!"<<std::endl;
+}
+
+int Controller::waitForCommand(){
+    std::cout<<getPath()<<" > ";
+    std::string command;
+    std::cin>>command;
+    std::vector<std::string> parts;
+    split(command, parts, " ");
+    if (parts[0] == "touch") {
+        if(parts.size() != 3) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:2"<<std::endl;
+            return 0;
+        }
+        int fileSizeParam = atoi(parts[2].c_str());
+        touch(parts[1], fileSizeParam);
+    }
+    else if (parts[0] == "mkdir") {
+        if(parts.size() != 2) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:1"<<std::endl;
+            return 0;
+        }
+        mkdir(parts[1]);
+    }
+    else if (parts[0] == "del") {
+        if(parts.size() != 2) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:1"<<std::endl;
+            return 0;
+        }
+        del(parts[1]);
+    }
+    else if (parts[0] == "cd") {
+        if(parts.size() != 2) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:1"<<std::endl;
+            return 0;
+        }
+        cd(currentDir, parts[1]);
+    }
+    else if (parts[0] == "ls") {
+        if(parts.size() != 1) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:0"<<std::endl;
+            return 0;
+        }
+        ls();
+    }
+    else if (parts[0] == "cp") {
+        if(parts.size() != 3) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:2"<<std::endl;
+            return 0;
+        }
+        cp(parts[1], parts[2]);
+    }
+    else if (parts[0] == "sum") {
+        if(parts.size() != 1) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:0"<<std::endl;
+            return 0;
+        }
+        sum();
+    }
+    else if (parts[0] == "cat") {
+        if(parts.size() != 2) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:1"<<std::endl;
+            return 0;
+        }
+        mkdir(parts[1]);
+    }
+    else if (parts[0] == "exit") {
+        if(parts.size() != 1) {
+            std::cout<<"Invalid number of args: "<<parts.size()<<" required:0"<<std::endl;
+            return 0;
+        }
+        exit();
+        return -1;
+    }
+    return 1;
 }

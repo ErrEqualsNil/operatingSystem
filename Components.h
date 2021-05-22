@@ -93,4 +93,6 @@ class Controller {
     void cp(std::string srcPath, std::string desPath);
     void sum();
     void cat(std::string fileDir); 
+    void exit();
+    int waitForCommand();
 };

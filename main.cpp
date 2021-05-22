@@ -9,6 +9,17 @@ using namespace std;
 
 int main() {
     Controller c;
-    c.ls();
+    int total, cur;
+    total = cur = 0;
+    while(true){
+        int res;
+        res = c.waitForCommand();
+        if (res == -1){
+            break;
+        }
+        total += 1;
+        cur += res;
+    }
+    std::cout<<"Successfully Execute: "<< cur <<" / Total: "<< total <<endl;
     return 0;
 }
