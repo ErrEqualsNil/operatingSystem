@@ -42,6 +42,14 @@
         "xtr1common": "cpp",
         "xutility": "cpp",
         "filesystem": "cpp",
-        "ctime": "cpp"
+        "ctime": "cpp",
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "cstdarg": "cpp",
+        "cwctype": "cpp",
+        "unordered_map": "cpp",
+        "sstream": "cpp"
     }
 }
