@@ -2,8 +2,7 @@
 #include <bitset>
 #include <vector>
 #include <fstream>
-//#include "Components.h"
-#include "implements.h"
+#include "implements.cpp"
 
 using namespace std;
 

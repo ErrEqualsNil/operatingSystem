@@ -1,4 +1,3 @@
-#include <bitset>
 #include <vector>
 #include <iostream>
 #include <fstream>
@@ -27,6 +26,14 @@ public:
     int getPos();            // 获取地址对应的块内序号 （后10位组成的int）
     void intToAddr(int num); // 将byte序号转换为地址， eg. 序号1025 -> block 1 pos 1
     int AddrToInt();         // 将地址转为byte序号
+};
+
+class Block
+{
+    public:
+    char content[1024];
+    void emptyFill();
+    void randomFill();
 };
 
 class Unit
@@ -75,11 +82,11 @@ public:
     void init();
     INode readINode(Address addr);
     Dirent readDirent(Address addr);
-    std::string readBlock(Address addr);
+    Block readBlock(Address addr);
     Address readAddress(Address addr);
     void writeINode(INode node, Address addr);
     void writeDirent(Dirent dir, Address addr);
-    void writeBlock(Address addr);
+    void writeBlock(Block block, Address addr);
     void cleanBlock(Address addr);
     void writeAddress(Address address, Address addr); // 将address写入addr地址
 };
@@ -98,10 +105,10 @@ public:
     std::string getPath();
     int getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent &res);
     int changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename);
-    void touch(std::string fileDir, int fileSize);
+    void touch(Dirent startDir, std::string fileDir, int fileSize);
     void mkdirp(std::string folderDir);
     void mkdir(std::string folderDir);
-    void del(std::string fileDir);
+    void del(Dirent startDir, std::string fileDir);
     void deleteFile(INode fileINode, Address INodeAddr);
     void deleteFolder(Dirent dir, Address direntAddr);
     void cd(Dirent startDir, std::string targetDir);
