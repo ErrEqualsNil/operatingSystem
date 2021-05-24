@@ -96,7 +96,8 @@ class Controller
 public:
     Dirent currentDir;
     Dirent rootDir;
-    std::vector<std::string> path;
+    std::vector<Address> path_addr;
+    std::vector<std::string> path_string;
     DiskController diskController;
     std::vector<Address> idleDirentAddrs;
     std::vector<Address> idleINodeAddrs;
@@ -111,6 +112,7 @@ public:
     void del(Dirent startDir, std::string fileDir);
     void deleteFile(INode fileINode, Address INodeAddr);
     void deleteFolder(Dirent dir, Address direntAddr);
+    int cdOneStep(Dirent& curDir, std::string nextLevel);
     void cd(Dirent startDir, std::string targetDir);
     void ls();
     void cp(std::string srcPath, std::string desPath);

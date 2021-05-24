@@ -408,14 +408,15 @@ Controller::Controller() {
     tmpAddr.intToAddr(0);
     currentDir = diskController.readDirent(tmpAddr);
     rootDir = diskController.readDirent(tmpAddr);
-    path.push_back("~");
+    path_addr.push_back(tmpAddr);
+    path_string.push_back("~");
     std::cout<<"Current idleDir Space:"<<idleDirentAddrs.size()<<"; Current idleINode Space:"<<idleINodeAddrs.size()<<"; Current idleBlock Space:"<<idleBlockAddrs.size()<<std::endl;
 }
 
 std::string Controller::getPath() {
     std::string str;
-    for (std::string folderName : path) {
-        std::cout << folderName << " / ";
+    for (int i=0; i < path_addr.size(); i++) {
+        std::cout <<path_string[i] << "/";
     }
     return str;
 }
@@ -488,20 +489,45 @@ int Controller::changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dir
     return 0;
 }
 
+int Controller::cdOneStep(Dirent& curDir, std::string nextLevel) {
+    if(nextLevel == ""){
+        return 1;
+    }
+    if(nextLevel == "."){
+        return 1;
+    }
+    if(nextLevel == ".."){
+        if (path_addr.size() == 0 || path_addr.size() == 1){
+            return 1;
+        }
+        path_addr.pop_back();
+        path_string.pop_back();
+        Address curDirAddr = path_addr.back();
+        curDir = diskController.readDirent(curDirAddr);
+        return 1;
+    }
+    for(int i = 0; i < MAX_NUM_UNITS; i++){
+        if(curDir.units[i].status == isFolder && curDir.units[i].fileName == nextLevel){
+            Dirent tmp = diskController.readDirent(curDir.units[i].addr);
+            std::cout<<"cd into dir, addr: "<<tmp.units[0].addr.AddrToInt()<<std::endl;
+            path_string.push_back(curDir.units[i].fileName);
+            curDir = tmp;
+            path_addr.push_back(curDir.units[0].addr);
+            return 1;
+        }
+    }
+    return -1;
+}
+
 void Controller::cd(Dirent startDir, std::string targetPath) {
-    if (targetPath == "") {
-        return;
-    }
-    if (targetPath[0] == '~') {
-        Controller::cd(rootDir, targetPath.substr(2, targetPath.size() - 2));
-        return;
-    }
     std::vector<std::string> splits;
     split(targetPath, splits, "/");
     Dirent finishDir = startDir;
-    if(-1 == getTmpDir(splits, startDir, finishDir)){
-        std::cout<<"Invalid Path"<<std::endl;
-        return ;
+    for(std::string level : splits){
+        if(cdOneStep(finishDir, level) == -1){
+            std::cout<<"Invalid Path"<<std::endl;
+            return ;
+        }
     }
     currentDir = finishDir;
     return;
@@ -673,6 +699,7 @@ void Controller::deleteFolder(Dirent dir, Address direntAddr) {
             continue;
         }
         if (dir.units[i].status == isFile) {
+            std::cout<<"Delete file "<<dir.units[i].fileName<<std::endl;
             deleteFile(diskController.readINode(dir.units[i].addr), dir.units[i].addr);
             dir.units[i].status = isEmpty;
             memset(dir.units[i].fileName, 0, sizeof(dir.units[i].fileName));
@@ -690,6 +717,7 @@ void Controller::deleteFolder(Dirent dir, Address direntAddr) {
     memset(dir.units[1].fileName, 0, sizeof(dir.units[1].fileName));
     diskController.writeDirent(dir, direntAddr);
     idleDirentAddrs.push_back(direntAddr);
+    currentDir = diskController.readDirent(currentDir.units[0].addr);
 }
 
 void Controller::del(Dirent startDir, std::string fileDir) {
@@ -730,7 +758,7 @@ void Controller::del(Dirent startDir, std::string fileDir) {
     diskController.writeDirent(targetDir, targetDir.units[0].addr);
     currentDir = diskController.readDirent(currentDir.units[0].addr);
 }
-void Controller::mkdirp(std::string folderDir)
+void Controller::mkdir(std::string folderDir)
 {
     std::string folderName;
     Dirent targetDir;
@@ -757,50 +785,17 @@ void Controller::mkdirp(std::string folderDir)
         std::cout << "Failed to create folder to current Dir" << std::endl;
         return;
     }
-    Dirent newFolderDir = Dirent(targetDir.units[emptyPos].addr, currentDir.units[0].addr);
-    Address idleAddr = idleDirentAddrs.back();
-    targetDir.units[emptyPos].addr = idleAddr;
+    Address newDirAddr = idleDirentAddrs.back();
+    Dirent newFolderDir = Dirent(newDirAddr, targetDir.units[0].addr);
+    targetDir.units[emptyPos].addr = newDirAddr;
     strcpy(targetDir.units[emptyPos].fileName, folderName.c_str());
-    diskController.writeDirent(newFolderDir, idleAddr);
+    targetDir.units[emptyPos].status = isFolder;
+    diskController.writeDirent(newFolderDir, newDirAddr);
     idleDirentAddrs.pop_back();
-    std::string targetPath = getPath() + "/" + folderName;
-    cd(currentDir, targetPath);
+    diskController.writeDirent(targetDir, targetDir.units[0].addr);
+    currentDir = diskController.readDirent(currentDir.units[0].addr);
+    return;
 }
-void Controller::mkdir(std::string folderstr)
-{
-    if (std::string::npos == folderstr.find("/"))
-    {
-        mkdirp(folderstr);
-        return;
-    }
-    if (std::string::npos != folderstr.find("/"))
-    {
-        Dirent targetDir;
-        std::string resPath;
-        std::vector<std::string> folderNameSplits;
-        split(folderstr, folderNameSplits, "/");
-        if (getTmpDir(folderNameSplits, currentDir, targetDir) == -1)
-        {
-            std::cout << "Invalid Path" << std::endl;
-            return;
-        }
-        mkdirp(folderNameSplits[0]);
-        resPath = resPath + folderNameSplits[1];
-        for (int i = 1; i < sizeof(folderNameSplits); i++)
-        {
-            if (i == 1)
-            {
-                resPath = folderNameSplits[i];
-            }
-            else
-            {
-                resPath = resPath + "/" + folderNameSplits[i];
-            }
-        }
-        mkdir(resPath);
-    }
-}
-
 void Controller::exit() {
     diskController.writeDirent(currentDir, currentDir.units[0].addr);
     std::cout<<"Welcome Back!"<<std::endl;
