@@ -25,7 +25,7 @@ const int MAX_NUM_UNITS = 16;
 const int MAX_FILE_NAME = 23;
 
 //以下是Address实现
-std::bitset<24> charToBitset(const char s[3]){
+std::bitset<24> charToBitset(const char s[3]) {
     std::bitset<24> bits;
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 8; ++j)
@@ -33,50 +33,42 @@ std::bitset<24> charToBitset(const char s[3]){
     return bits;
 }
 
-Address::Address(){
+Address::Address() {
     std::memset(addr, 0, sizeof(addr));
 }
-int Address::getBlockPos()
-{
+int Address::getBlockPos() {
     std::bitset<24> a;
     a = charToBitset(addr);
     int flag = 1;
     int res = 0;
-    for (int i = 13; i > 0; i--)
-    {
+    for (int i = 13; i > 0; i--) {
         res += a[i] * flag;
         flag *= 2;
     }
 
     return res;
 }
-int Address::getPos()
-{
+int Address::getPos() {
     std::bitset<24> a;
     a = charToBitset(addr);
     int flag = 1;
     int res = 0;
-    for (int i = 23; i > 13; i--)
-    {
+    for (int i = 23; i > 13; i--) {
         res += a[i] * flag;
         flag *= 2;
     }
     return res;
 }
-void Address::intToAddr(int num)
-{
+void Address::intToAddr(int num) {
     addr[0] = addr[1] = addr[2] = 0;
-    for (int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
         int offset = i * 8;
         addr[i] = (num >> offset) & 0xFF;
     }
 }
-int Address::AddrToInt()
-{
+int Address::AddrToInt() {
     int num = 0;
-    for (int i = 0; i < 3; i++)
-    {
+    for (int i = 0; i < 3; i++) {
         int offset = i * 8;
         num |= (addr[i] & 0xFF) << offset;
     }
@@ -85,21 +77,20 @@ int Address::AddrToInt()
 
 //以下是Block实现
 
-void Block::emptyFill(){
-    for(int i = 0;i < BLOCK_LENGTH; i++){
+void Block::emptyFill() {
+    for(int i = 0;i < BLOCK_LENGTH; i++) {
         content[i] = 0;
     }
 }
 
-void Block::randomFill(){
-    for(int i = 0;i < BLOCK_LENGTH; i++){
+void Block::randomFill() {
+    for(int i = 0;i < BLOCK_LENGTH; i++) {
         content[i] = rand() % 26 + 'A';
     }
 }
 
 //以下是Unit实现
-Unit::Unit()
-{
+Unit::Unit() {
     std::strcpy(fileName, "");
     addr = Address();
     status = isEmpty;
@@ -107,16 +98,13 @@ Unit::Unit()
 
 //以下是Dirent实现
 
-Dirent::Dirent()
-{
+Dirent::Dirent() {
     Unit emptyUnit = Unit();
-    for (int i = 0; i < MAX_NUM_UNITS; i++)
-    {
+    for (int i = 0; i < MAX_NUM_UNITS; i++) {
         units[i] = emptyUnit;
     }
 }
-Dirent::Dirent(Address cur, Address prev)
-{
+Dirent::Dirent(Address cur, Address prev) {
     Unit curUnit = Unit();
     strcpy(curUnit.fileName, ".");
     curUnit.addr = cur;
@@ -130,8 +118,7 @@ Dirent::Dirent(Address cur, Address prev)
     units[1] = prevUnit;
 
     Unit emptyUnit = Unit();
-    for (int i = 2; i < MAX_NUM_UNITS; i++)
-    {
+    for (int i = 2; i < MAX_NUM_UNITS; i++) {
         units[i] = emptyUnit;
     }
 }
@@ -142,8 +129,7 @@ void Dirent::listUnit() {
     }
 }
 
-int Dirent::findUnitIndex(const char *fileName, UnitStatus status)
-{
+int Dirent::findUnitIndex(const char *fileName, UnitStatus status) {
     int idx = 0;
     for (; idx < MAX_FILE_NAME; idx++) {
         if (units[idx].status != status) {
@@ -164,8 +150,7 @@ INode::INode() {
     numDirect = numInDirectBlock = 0;
     fileLength = 0;
 }
-INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskController* diskController)
-{
+INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskController* diskController) {
     ctime = mtime = atime = std::time(0);
     linkNum = 1;
     fileLength = fileSize_kb;
@@ -215,15 +200,14 @@ INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskControll
     }
     std::cout<<"INode Size:"<<sizeof(this)<<std::endl;
 }
-std::vector<Address> INode::getAllBlockAddress(DiskController *diskController)
-{
+std::vector<Address> INode::getAllBlockAddress(DiskController *diskController) {
     std::vector<Address> allAddr;
-    for (int i = 0; i < numDirect; i++){
+    for (int i = 0; i < numDirect; i++) {
         allAddr.push_back(directBlockAddress[i]);
         std::cout<<"Dirent Block Addrs:"<<directBlockAddress[i].AddrToInt()<<std::endl;
     }
     
-    for (int i = 0; i < numInDirectBlock; i++){
+    for (int i = 0; i < numInDirectBlock; i++) {
         Address add, val;
         add.intToAddr(indirectblockAddress.AddrToInt() + 3 * i);
         val = diskController->readAddress(add);
@@ -233,12 +217,12 @@ std::vector<Address> INode::getAllBlockAddress(DiskController *diskController)
     return allAddr;
 }
 
-void INode::cleanINode(std::vector<Address>& idleBlockAddrs, DiskController* disk){
+void INode::cleanINode(std::vector<Address>& idleBlockAddrs, DiskController* disk) {
     fileLength = 0;
     ctime = atime = mtime = 0;
     linkNum = 0;
     numDirect = numInDirectBlock = 0; 
-    if (indirectblockAddress.AddrToInt() != 0){
+    if (indirectblockAddress.AddrToInt() != 0) {
         disk->cleanBlock(indirectblockAddress);
         idleBlockAddrs.push_back(indirectblockAddress);
     }
@@ -312,19 +296,16 @@ Block DiskController::readBlock(Address addr) {
     return block;
 }
 
-Address DiskController::readAddress(Address addr)
-{
+Address DiskController::readAddress(Address addr) {
     Address res;
     disk.seekg(addr.AddrToInt(), std::ios::beg);
     disk.read((char *)&res, sizeof(res));
     return res;
 }
 
-void DiskController::writeINode(INode node, Address addr)
-{
+void DiskController::writeINode(INode node, Address addr) {
     int pos = addr.AddrToInt();
-    if (pos < INODE_AREA_BEGIN || pos > INODE_AREA_END)
-    {
+    if (pos < INODE_AREA_BEGIN || pos > INODE_AREA_END) {
         std::cout << "Write INode Fail, addr: " << pos << std::endl;
         return;
     }
@@ -333,11 +314,9 @@ void DiskController::writeINode(INode node, Address addr)
     return;
 }
 
-void DiskController::writeDirent(Dirent dir, Address addr)
-{
+void DiskController::writeDirent(Dirent dir, Address addr) {
     int pos = addr.AddrToInt();
-    if (pos < DIRENT_AREA_BEGIN || pos > DIRENT_AREA_END)
-    {
+    if (pos < DIRENT_AREA_BEGIN || pos > DIRENT_AREA_END) {
         std::cout << "Write Dirent Fail, addr: " << addr.AddrToInt() << std::endl;
         return;
     }
@@ -346,11 +325,9 @@ void DiskController::writeDirent(Dirent dir, Address addr)
     return;
 }
 
-void DiskController::writeBlock(Block block, Address addr)
-{
+void DiskController::writeBlock(Block block, Address addr) {
     int pos = addr.AddrToInt();
-    if (pos < BLOCK_AREA_BEGIN || pos > BLOCK_AREA_END)
-    {
+    if (pos < BLOCK_AREA_BEGIN || pos > BLOCK_AREA_END) {
         std::cout << "Write Block Fail, addr: " << addr.AddrToInt() << std::endl;
         return;
     }
@@ -359,8 +336,7 @@ void DiskController::writeBlock(Block block, Address addr)
     return;
 }
 
-void DiskController::cleanBlock(Address addr)
-{
+void DiskController::cleanBlock(Address addr) {
     Block b;
     b.emptyFill();
     writeBlock(b, addr);
@@ -397,7 +373,7 @@ Controller::Controller() {
         }
     }
 
-    for (int i = BLOCK_AREA_END; i >= BLOCK_AREA_BEGIN; i -= BLOCK_LENGTH){
+    for (int i = BLOCK_AREA_END; i >= BLOCK_AREA_BEGIN; i -= BLOCK_LENGTH) {
         tmpAddr.intToAddr(i);
         Block b;
         b = diskController.readBlock(tmpAddr);
@@ -422,8 +398,7 @@ std::string Controller::getPath() {
     return str;
 }
 
-void Controller::ls()
-{
+void Controller::ls() {
     for (int i = 2; i < MAX_NUM_UNITS; i++) {
         if (currentDir.units[i].status == isEmpty) {
             continue;
@@ -439,13 +414,11 @@ void Controller::ls()
     }
 }
 
-void Controller::sum()
-{
+void Controller::sum() {
     std::cout << "Remain Store Space : " << idleBlockAddrs.size() << " KB" << std::endl;
 }
 
-void split(const std::string &s, std::vector<std::string> &sv, const char *delim = " ")
-{
+void split(const std::string &s, std::vector<std::string> &sv, const char *delim = " ") {
     sv.clear();
     char *buffer = new char[s.size() + 1];
     buffer[s.size()] = '\0';
@@ -477,30 +450,29 @@ int Controller::getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent
     return 0;
 }
 
-int Controller::changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename)
-{
+int Controller::changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename) {
     std::vector<std::string> splits;
     split(dir, splits, "/");
     filename = splits.back();
     splits.pop_back();
-    if(splits[0] == "~"){
+    if(splits[0] == "~") {
         return Controller::changeDirToDirentAndFilename(dir.substr(2, dir.size() - 2), rootDir, targetDir, filename);
     }
-    if (getTmpDir(splits, currentDir, targetDir) == -1){
+    if (getTmpDir(splits, currentDir, targetDir) == -1) {
         return -1;
     }
     return 0;
 }
 
 int Controller::cdOneStep(Dirent& curDir, std::string nextLevel) {
-    if(nextLevel == ""){
+    if(nextLevel == "") {
         return 1;
     }
-    if(nextLevel == "."){
+    if(nextLevel == ".") {
         return 1;
     }
-    if(nextLevel == ".."){
-        if (path_addr.size() == 0 || path_addr.size() == 1){
+    if(nextLevel == "..") {
+        if (path_addr.size() == 0 || path_addr.size() == 1) {
             return 1;
         }
         path_addr.pop_back();
@@ -509,8 +481,8 @@ int Controller::cdOneStep(Dirent& curDir, std::string nextLevel) {
         curDir = diskController.readDirent(curDirAddr);
         return 1;
     }
-    for(int i = 0; i < MAX_NUM_UNITS; i++){
-        if(curDir.units[i].status == isFolder && curDir.units[i].fileName == nextLevel){
+    for(int i = 0; i < MAX_NUM_UNITS; i++) {
+        if(curDir.units[i].status == isFolder && curDir.units[i].fileName == nextLevel) {
             Dirent tmp = diskController.readDirent(curDir.units[i].addr);
             std::cout<<"cd into dir, addr: "<<tmp.units[0].addr.AddrToInt()<<std::endl;
             path_string.push_back(curDir.units[i].fileName);
@@ -526,8 +498,8 @@ void Controller::cd(Dirent startDir, std::string targetPath) {
     std::vector<std::string> splits;
     split(targetPath, splits, "/");
     Dirent finishDir = startDir;
-    for(std::string level : splits){
-        if(cdOneStep(finishDir, level) == -1){
+    for(std::string level : splits) {
+        if(cdOneStep(finishDir, level) == -1) {
             std::cout<<"Invalid Path"<<std::endl;
             return ;
         }
@@ -543,7 +515,7 @@ void Controller::touch(Dirent startDir, std::string fileDir, int fileSize) {
         std::cout << "Invalid Path!" << std::endl;
         return;
     }
-    if (fileSize + 1 > idleBlockAddrs.size() || fileSize > 10 + (1024 / 4)){
+    if (fileSize + 1 > idleBlockAddrs.size() || fileSize > 10 + (1024 / 4)) {
         std::cout << "File Size Invalid, require: "<< fileSize + 1 <<"; Limit: "<<std::min(int(idleBlockAddrs.size()), 10 + (1024 / 4))<<std::endl;
         return;
     }
@@ -592,8 +564,7 @@ void Controller::cat(std::string fileDir) {
         std::cout << "Invalid Path!" << std::endl;
     }
     bool ok = false;
-    for (int i = 0; i < MAX_FILE_NAME; i++)
-    {
+    for (int i = 0; i < MAX_FILE_NAME; i++) {
         if (targetDir.units[i].status == isEmpty) {
             continue;
         }
@@ -609,13 +580,12 @@ void Controller::cat(std::string fileDir) {
         targetFileINode = diskController.readINode(targetDir.units[i].addr);
         std::vector<Address> blockAddrs;
         blockAddrs = targetFileINode.getAllBlockAddress(&diskController);
-        for (Address addr : blockAddrs){
+        for (Address addr : blockAddrs) {
             std::cout<<diskController.readBlock(addr).content;
         }
         std::cout << std::endl;
     }
-    if (!ok)
-    {
+    if (!ok) {
         std::cout << "Invalid Path" << std::endl;
     }
 }
@@ -641,8 +611,8 @@ void Controller::cp(std::string srcPath, std::string desPath) {
         return;
     }
     int emptyPos = MAX_NUM_UNITS;
-    for(int i = 0; i < MAX_NUM_UNITS; i++){
-        if (desDir.units[i].status == isEmpty){
+    for(int i = 0; i < MAX_NUM_UNITS; i++) {
+        if (desDir.units[i].status == isEmpty) {
             emptyPos = i;
             break;
         }
@@ -651,7 +621,7 @@ void Controller::cp(std::string srcPath, std::string desPath) {
         std::cout<<"Not enough empty unit at Des Dir"<<std::endl;
         return;
     }
-    if (idleINodeAddrs.size() == 0){
+    if (idleINodeAddrs.size() == 0) {
         std::cout<<"Not enough empty inode for Des Dir"<<std::endl;
         return;
     }
@@ -744,7 +714,7 @@ void Controller::deleteFolder(Dirent dir, Address direntAddr) {
 void Controller::del(Dirent startDir, std::string fileDir) {
     Dirent targetDir;
     std::string name;
-    if(-1 == changeDirToDirentAndFilename(fileDir, currentDir, targetDir, name)){
+    if(-1 == changeDirToDirentAndFilename(fileDir, currentDir, targetDir, name)) {
         std::cout<<"Invalid Path"<<std::endl;
         return ;
     }
@@ -775,18 +745,15 @@ void Controller::del(Dirent startDir, std::string fileDir) {
     diskController.writeDirent(targetDir, targetDir.units[0].addr);
     currentDir = diskController.readDirent(currentDir.units[0].addr);
 }
-void Controller::mkdir(std::string folderDir)
-{
+void Controller::mkdir(std::string folderDir) {
     std::string folderName;
     Dirent targetDir;
-    if (changeDirToDirentAndFilename(folderDir, currentDir, targetDir, folderName) == -1)
-    {
+    if (changeDirToDirentAndFilename(folderDir, currentDir, targetDir, folderName) == -1) {
         std::cout << "Invalid Path!" << std::endl;
         return;
     }
     int emptyPos = MAX_NUM_UNITS;
-    for (int i = MAX_NUM_UNITS - 1; i >= 0; i--)
-    {
+    for (int i = MAX_NUM_UNITS - 1; i >= 0; i--) {
         if (targetDir.units[i].status == isEmpty)
         {
             emptyPos = i;
@@ -797,8 +764,7 @@ void Controller::mkdir(std::string folderDir)
             return;
         }
     }
-    if (emptyPos == MAX_NUM_UNITS)
-    {
+    if (emptyPos == MAX_NUM_UNITS) {
         std::cout << "Failed to create folder to current Dir" << std::endl;
         return;
     }
@@ -818,8 +784,8 @@ void Controller::exit() {
     std::cout<<"Welcome Back!"<<std::endl;
 }
 
-int Controller::waitForCommand(){
-    std::cout<<getPath()<<" > ";
+int Controller::waitForCommand() {
+    std::cout<<getPath()<<" >";
     std::string command;
     getline(std::cin, command);
     std::vector<std::string> parts;
