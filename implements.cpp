@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <bitset>
+#include <math.h>
 #include <ctime>
 #include "Components.h"
 
@@ -542,6 +543,10 @@ void Controller::touch(Dirent startDir, std::string fileDir, int fileSize) {
         std::cout << "Invalid Path!" << std::endl;
         return;
     }
+    if (fileSize + 1 > idleBlockAddrs.size() || fileSize > 10 + (1024 / 4)){
+        std::cout << "File Size Invalid, require: "<< fileSize + 1 <<"; Limit: "<<std::min(int(idleBlockAddrs.size()), 10 + (1024 / 4))<<std::endl;
+        return;
+    }
     if (fileName.length() > MAX_FILE_NAME) {
         std::cout << "File name so long" << std::endl;
         return;
@@ -744,7 +749,7 @@ void Controller::del(Dirent startDir, std::string fileDir) {
         return ;
     }
     bool ok = false;
-    for (int i = 0; i < MAX_NUM_UNITS; i++) {
+    for (int i = 2; i < MAX_NUM_UNITS; i++) {
         if (targetDir.units[i].status == isEmpty) {
             continue;
         }
