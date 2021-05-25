@@ -482,8 +482,10 @@ int Controller::changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dir
     split(dir, splits, "/");
     filename = splits.back();
     splits.pop_back();
-    if (getTmpDir(splits, currentDir, targetDir) == -1)
-    {
+    if(splits[0] == "~"){
+        return Controller::changeDirToDirentAndFilename(dir.substr(2, dir.size() - 2), rootDir, targetDir, filename);
+    }
+    if (getTmpDir(splits, currentDir, targetDir) == -1){
         return -1;
     }
     return 0;
@@ -536,10 +538,6 @@ void Controller::cd(Dirent startDir, std::string targetPath) {
 void Controller::touch(Dirent startDir, std::string fileDir, int fileSize) {
     std::string fileName;
     Dirent targetDir;
-    if (fileDir[0] == '~') {
-        Controller::touch(rootDir, fileDir.substr(2, fileDir.size() - 2), fileSize);
-        return;
-    }
     if (changeDirToDirentAndFilename(fileDir, startDir, targetDir, fileName) == -1) { 
         std::cout << "Invalid Path!" << std::endl;
         return;
@@ -619,26 +617,39 @@ void Controller::cat(std::string fileDir) {
 
 void Controller::cp(std::string srcPath, std::string desPath) {
     Dirent srcDir, desDir;
-    std::string srcFilename;
-    std::vector<std::string> desSplits;
-    split(desPath, desSplits, "/");
+    std::string srcFilename, desFilename;
     if (changeDirToDirentAndFilename(srcPath, currentDir, srcDir, srcFilename) == -1 ||
-        getTmpDir(desSplits, currentDir, desDir) == -1) {
+        changeDirToDirentAndFilename(desPath, currentDir, desDir, desFilename) == -1) {
         std::cout << "Invalid Path" << std::endl;
         return;
     }
     int srcUnitIdx;
     srcUnitIdx = srcDir.findUnitIndex(srcFilename.c_str(), isFile);
     if (srcUnitIdx == -1) {
-        std::cout << "Invalid Path" << std::endl;
+        std::cout << "Invalid Path, Src File Not Found" << std::endl;
         return;
     }
     INode src;
     src = diskController.readINode(srcDir.units[srcUnitIdx].addr);
     if (idleBlockAddrs.size() < src.fileLength + 1) {
-        std::cout << "Not enough Space" << std::endl;
+        std::cout << "Not enough Space For Des File" << std::endl;
+        return;
     }
-
+    int emptyPos = MAX_NUM_UNITS;
+    for(int i = 0; i < MAX_NUM_UNITS; i++){
+        if (desDir.units[i].status == isEmpty){
+            emptyPos = i;
+            break;
+        }
+    }
+    if (emptyPos == MAX_NUM_UNITS) {
+        std::cout<<"Not enough empty unit at Des Dir"<<std::endl;
+        return;
+    }
+    if (idleINodeAddrs.size() == 0){
+        std::cout<<"Not enough empty inode for Des Dir"<<std::endl;
+        return;
+    }
     INode des;
     des.ctime = des.mtime = des.atime = time(0);
     des.fileLength = src.fileLength;
@@ -657,10 +668,6 @@ void Controller::cp(std::string srcPath, std::string desPath) {
         des.directBlockAddress[i] = addr;
     }
 
-    if (src.numInDirectBlock == 0) {
-        return;
-    }
-
     Address addrBlockStartPos = idleBlockAddrs.back();
     idleBlockAddrs.pop_back();
     des.indirectblockAddress = addrBlockStartPos;
@@ -674,10 +681,19 @@ void Controller::cp(std::string srcPath, std::string desPath) {
         srcBlock = diskController.readBlock(srcBlocks[10 + i]);
         Block desB;
         strcpy(desB.content, srcBlock.content);
-
         diskController.writeBlock(desB, contentBlock);
         diskController.writeAddress(contentBlock, contentBlockAddrPos);
     }
+    strcpy(desDir.units[emptyPos].fileName, desFilename.c_str());
+    Address desINodeAddr = idleINodeAddrs.back();
+    idleINodeAddrs.pop_back();
+    diskController.writeINode(des, desINodeAddr);
+    std::cout<<"Occupied INode Addr: "<<desINodeAddr.AddrToInt()<<std::endl;
+    desDir.units[emptyPos].addr = desINodeAddr;
+    desDir.units[emptyPos].status = isFile;
+    diskController.writeDirent(desDir, desDir.units[0].addr);
+    currentDir = diskController.readDirent(currentDir.units[0].addr);
+
 }
 
 void Controller::deleteFile(INode fileINode, Address INodeAddr) {
@@ -723,10 +739,6 @@ void Controller::deleteFolder(Dirent dir, Address direntAddr) {
 void Controller::del(Dirent startDir, std::string fileDir) {
     Dirent targetDir;
     std::string name;
-    if (fileDir[0] == '~'){
-        Controller::del(rootDir, fileDir.substr(2, fileDir.size() - 2));
-        return ;
-    }
     if(-1 == changeDirToDirentAndFilename(fileDir, currentDir, targetDir, name)){
         std::cout<<"Invalid Path"<<std::endl;
         return ;
