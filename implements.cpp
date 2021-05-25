@@ -268,7 +268,7 @@ void DiskController::init() {
         disk.close();
     }
     else {
-        std::cout << ".dat Exist!" << std::endl;
+        std::cout << "Load Previous Disk!" << std::endl;
     }
     disk.open(FILE_NAME, std::ios::in | std::ios::out | std::ios::binary);
 }
@@ -351,8 +351,18 @@ void DiskController::writeAddress(Address address, Address addr) {
 //以下是Controller实现
 
 Controller::Controller() {
-    std::cout<<"Init File System "<<std::endl;
-    std::cout<<"Design & Implement: 彭鹏 林师言"<<std::endl;
+    std::cout<<"                             Initing File System ...                                             "<<std::endl;
+    std::cout<<"                          Design & Implement: 彭鹏 林师言                                          "<<std::endl<<std::endl;
+    std::cout<<"                            How To Use This System ?                                             "<<std::endl;
+    std::cout<<"                       1. cd [path] : change dir into the [path]                                 "<<std::endl;
+    std::cout<<"2. touch [path] [fileSize] : create file with [fileSize] at [Path], random content will be filled"<<std::endl;
+    std::cout<<"                      3. mkdir [path] : make new dir at [path]                                   "<<std::endl;
+    std::cout<<"                    4. ls : list file and folder of current dir                                  "<<std::endl;
+    std::cout<<"             5. del [path] : delete file or folder(recursively) of [path]                        "<<std::endl;
+    std::cout<<"                            6. sum : check free space                                            "<<std::endl;
+    std::cout<<"            7. cp [srcPath] [desPath] : copy file at [srcPath] to [desPath]                      "<<std::endl;
+    std::cout<<"                    8. cat [path] : check file content of [path]                                 "<<std::endl;
+    std::cout<<"                             9. exit : exit system                                               "<<std::endl;
     Address tmpAddr;
     Dirent tmpDir;
     diskController.init();
@@ -854,6 +864,10 @@ int Controller::waitForCommand() {
         }
         exit();
         return -1;
+    }
+    else{
+        std::cout<<"Invalid Command"<<std::endl;
+        return 0;
     }
     return 1;
 }
