@@ -78,6 +78,10 @@
         "optional": "cpp",
         "ratio": "cpp",
         "stack": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "memory_resource": "cpp",
+        "numeric": "cpp",
+        "random": "cpp",
+        "cinttypes": "cpp"
     }
 }
