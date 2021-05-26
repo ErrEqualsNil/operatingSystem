@@ -5,6 +5,7 @@
 #include <bitset>
 #include <math.h>
 #include <ctime>
+#include <cstring>
 #include "Components.h"
 
 const int FILE_LENGTH_BYTE = 16 * 1024 * 1024;
@@ -225,6 +226,7 @@ void INode::cleanINode(std::vector<Address>& idleBlockAddrs, DiskController* dis
     if (indirectblockAddress.AddrToInt() != 0) {
         disk->cleanBlock(indirectblockAddress);
         idleBlockAddrs.push_back(indirectblockAddress);
+        std::cout<<"Free InDirect Addr Block Num: 1"<<std::endl;
     }
     return;
 }
@@ -268,7 +270,7 @@ void DiskController::init() {
         disk.close();
     }
     else {
-        std::cout << ".dat Exist!" << std::endl;
+        std::cout << "Load Previous Disk!" << std::endl;
     }
     disk.open(FILE_NAME, std::ios::in | std::ios::out | std::ios::binary);
 }
@@ -351,8 +353,18 @@ void DiskController::writeAddress(Address address, Address addr) {
 //以下是Controller实现
 
 Controller::Controller() {
-    std::cout<<"Init File System "<<std::endl;
-    std::cout<<"Design & Implement: 彭鹏 林师言"<<std::endl;
+    std::cout<<"                             Initing File System ...                                             "<<std::endl;
+    std::cout<<"                          Design & Implement: 彭鹏 林师言                                          "<<std::endl<<std::endl;
+    std::cout<<"                            How To Use This System ?                                             "<<std::endl;
+    std::cout<<"                       1. cd [path] : change dir into the [path]                                 "<<std::endl;
+    std::cout<<"2. touch [path] [fileSize] : create file with [fileSize] at [Path], random content will be filled"<<std::endl;
+    std::cout<<"                      3. mkdir [path] : make new dir at [path]                                   "<<std::endl;
+    std::cout<<"                    4. ls : list file and folder of current dir                                  "<<std::endl;
+    std::cout<<"             5. del [path] : delete file or folder(recursively) of [path]                        "<<std::endl;
+    std::cout<<"                            6. sum : check free space                                            "<<std::endl;
+    std::cout<<"            7. cp [srcPath] [desPath] : copy file at [srcPath] to [desPath]                      "<<std::endl;
+    std::cout<<"                    8. cat [path] : check file content of [path]                                 "<<std::endl;
+    std::cout<<"                             9. exit : exit system                                               "<<std::endl;
     Address tmpAddr;
     Dirent tmpDir;
     diskController.init();
@@ -482,7 +494,7 @@ int Controller::cdOneStep(Dirent& curDir, std::string nextLevel) {
         return 1;
     }
     for(int i = 0; i < MAX_NUM_UNITS; i++) {
-        if(curDir.units[i].status == isFolder && curDir.units[i].fileName == nextLevel) {
+        if(curDir.units[i].status == isFolder && strcmp(curDir.units[i].fileName, nextLevel.c_str()) == 0) {
             Dirent tmp = diskController.readDirent(curDir.units[i].addr);
             std::cout<<"cd into dir, addr: "<<tmp.units[0].addr.AddrToInt()<<std::endl;
             path_string.push_back(curDir.units[i].fileName);
@@ -497,6 +509,10 @@ int Controller::cdOneStep(Dirent& curDir, std::string nextLevel) {
 void Controller::cd(Dirent startDir, std::string targetPath) {
     std::vector<std::string> splits;
     split(targetPath, splits, "/");
+    if(splits[0] == "~") {
+        Controller::cd(rootDir, targetPath.substr(2, targetPath.size() - 2));
+        return;
+    }
     Dirent finishDir = startDir;
     for(std::string level : splits) {
         if(cdOneStep(finishDir, level) == -1) {
@@ -635,30 +651,34 @@ void Controller::cp(std::string srcPath, std::string desPath) {
     for (int i = 0; i < src.numDirect; i++) {
         Address addr = idleBlockAddrs.back();
         idleBlockAddrs.pop_back();
-
         Block srcBlock, desB;
         srcBlock = diskController.readBlock(srcBlocks[i]);
-        strcpy(desB.content, srcBlock.content);
+        strncpy(desB.content, srcBlock.content, BLOCK_LENGTH);
         diskController.writeBlock(desB, addr);
         des.directBlockAddress[i] = addr;
+        std::cout<<"Copy content of Addr: "<<srcBlocks[i].AddrToInt()<<" to Addr: "<<addr.AddrToInt()<<std::endl;
     }
 
-    Address addrBlockStartPos = idleBlockAddrs.back();
-    idleBlockAddrs.pop_back();
-    des.indirectblockAddress = addrBlockStartPos;
-    for (int i = 0; i < src.numInDirectBlock; i++) {
-        Address contentBlock = idleBlockAddrs.back(); // 存内容的block地址
+    if(src.numInDirectBlock != 0) {
+        Address addrBlockStartPos = idleBlockAddrs.back();
         idleBlockAddrs.pop_back();
-        Address contentBlockAddrPos; // 存block地址的pos
-        contentBlockAddrPos.intToAddr(addrBlockStartPos.AddrToInt() + i * sizeof(Address));
-        
-        Block srcBlock;
-        srcBlock = diskController.readBlock(srcBlocks[10 + i]);
-        Block desB;
-        strcpy(desB.content, srcBlock.content);
-        diskController.writeBlock(desB, contentBlock);
-        diskController.writeAddress(contentBlock, contentBlockAddrPos);
+        des.indirectblockAddress = addrBlockStartPos;
+        for (int i = 0; i < src.numInDirectBlock; i++) {
+            Address contentBlock = idleBlockAddrs.back(); // 存内容的block地址
+            idleBlockAddrs.pop_back();
+            Address contentBlockAddrPos; // 存block地址的pos
+            contentBlockAddrPos.intToAddr(addrBlockStartPos.AddrToInt() + i * sizeof(Address));
+            
+            Block srcBlock;
+            srcBlock = diskController.readBlock(srcBlocks[10 + i]);
+            Block desB;
+            strncpy(desB.content, srcBlock.content, BLOCK_LENGTH);
+            diskController.writeBlock(desB, contentBlock);
+            diskController.writeAddress(contentBlock, contentBlockAddrPos);
+            std::cout<<"Copy content of Addr: "<<srcBlocks[i].AddrToInt()<<" to Addr: "<<contentBlock.AddrToInt()<<" write at Addr: "<<contentBlockAddrPos.AddrToInt()<<std::endl;
+        }
     }
+    
     strcpy(desDir.units[emptyPos].fileName, desFilename.c_str());
     Address desINodeAddr = idleINodeAddrs.back();
     idleINodeAddrs.pop_back();
@@ -673,6 +693,7 @@ void Controller::cp(std::string srcPath, std::string desPath) {
 
 void Controller::deleteFile(INode fileINode, Address INodeAddr) {
     std::vector<Address> blockAddrs = fileINode.getAllBlockAddress(&diskController);
+    std::cout<<"Free Store Block Space: "<<blockAddrs.size()<<std::endl;
     for (Address blockAddr : blockAddrs) {
         diskController.cleanBlock(blockAddr);
         idleBlockAddrs.push_back(blockAddr);
@@ -769,6 +790,7 @@ void Controller::mkdir(std::string folderDir) {
         return;
     }
     Address newDirAddr = idleDirentAddrs.back();
+    std::cout<<"Occupy Dir Address："<<newDirAddr.AddrToInt()<<std::endl;
     Dirent newFolderDir = Dirent(newDirAddr, targetDir.units[0].addr);
     targetDir.units[emptyPos].addr = newDirAddr;
     strcpy(targetDir.units[emptyPos].fileName, folderName.c_str());
@@ -854,6 +876,10 @@ int Controller::waitForCommand() {
         }
         exit();
         return -1;
+    }
+    else{
+        std::cout<<"Invalid Command"<<std::endl;
+        return 0;
     }
     return 1;
 }
