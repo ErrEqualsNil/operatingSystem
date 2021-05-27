@@ -153,7 +153,9 @@ INode::INode() {
     fileLength = 0;
 }
 INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskController* diskController) {
-    ctime = mtime = atime = std::time(0);
+    ctime = time(0);
+    mtime = time(0);
+    atime = time(0);
     linkNum = 1;
     fileLength = fileSize_kb;
     Address addr;
@@ -417,12 +419,17 @@ void Controller::ls() {
             continue;
         }
         if (currentDir.units[i].status == isFolder) {
-            std::cout << currentDir.units[i].fileName << std::endl;
+            std::cout << "Folder Name: " << currentDir.units[i].fileName << std::endl;
         }
         if (currentDir.units[i].status == isFile) {
             INode file;
             file = diskController.readINode(currentDir.units[i].addr);
-            std::cout << currentDir.units[i].fileName << " " << file.fileLength << "KB " << std::endl;
+            std::cout<<"File Name: "<<currentDir.units[i].fileName<<std::endl;
+            std::cout<<"File Size: "<<file.fileLength<<std::endl;
+            std::cout<<"Create Time: "<<ctime(&file.ctime)<<std::endl;
+            std::cout<<"Modify Time: "<<ctime(&file.mtime)<<std::endl;
+            std::cout<<"Access Time: "<<ctime(&file.atime)<<std::endl;
+        
         }
     }
 }
@@ -607,6 +614,9 @@ void Controller::cat(std::string fileDir) {
             std::cout<<diskController.readBlock(addr).content;
         }
         std::cout << std::endl;
+        targetFileINode.atime = time(0);
+
+        diskController.writeINode(targetFileINode, targetDir.units[i].addr);
     }
     if (!ok) {
         std::cout << "Invalid Path" << std::endl;
