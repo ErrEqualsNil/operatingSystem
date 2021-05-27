@@ -30,7 +30,7 @@ public:
 
 class Block
 {
-    public:
+public:
     char content[1024];
     void emptyFill();
     void randomFill();
@@ -68,10 +68,10 @@ public:
     int numDirect;
     Address indirectblockAddress; //如果指向0块0个，则认为是空
     int numInDirectBlock;
-    INode();                                                                                 //空INode， 所有值置0
+    INode();                                                                                   //空INode， 所有值置0
     INode(int kbLength, std::vector<Address> &idleBlockAddrs, DiskController *DiskController); //建立具有kbLength长度的INode
     std::vector<Address> getAllBlockAddress(DiskController *diskController);
-    void cleanINode(std::vector<Address>& idleINodeAddrs, DiskController* disk);
+    void cleanINode(std::vector<Address> &idleINodeAddrs, DiskController *disk);
 };
 
 class DiskController
@@ -107,17 +107,16 @@ public:
     int getTmpDir(std::vector<std::string> levels, Dirent curDir, Dirent &res);
     int changeDirToDirentAndFilename(std::string dir, Dirent curDir, Dirent &targetDir, std::string &filename);
     void touch(Dirent startDir, std::string fileDir, int fileSize);
-    void mkdirp(std::string folderDir);
     void mkdir(std::string folderDir);
     void del(Dirent startDir, std::string fileDir);
     void deleteFile(INode fileINode, Address INodeAddr);
     void deleteFolder(Dirent dir, Address direntAddr);
-    int cdOneStep(Dirent& curDir, std::string nextLevel);
+    int cdOneStep(Dirent &curDir, std::string nextLevel);
     void cd(Dirent startDir, std::string targetDir);
     void ls();
     void cp(std::string srcPath, std::string desPath);
     void sum();
-    void cat(std::string fileDir); 
+    void cat(std::string fileDir);
     void exit();
     int waitForCommand();
 };
