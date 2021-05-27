@@ -25,13 +25,6 @@ const int BLOCK_AREA_END = 16 * 1024 * 1024 - BLOCK_LENGTH; // 最后一个Block
 const int MAX_NUM_UNITS = 16;
 const int MAX_FILE_NAME = 23;
 
-bool withLog = true;
-
-void printLog(std::string str) {
-    if(withLog){
-        std::cout<<str<<std::endl;
-    }
-}
 
 //以下是Address实现
 std::bitset<24> charToBitset(const char s[3]) {
@@ -167,7 +160,7 @@ INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskControll
     if (fileSize_kb <= 10) {
         for (int i = 0; i < fileSize_kb; i++) {
             directBlockAddress[i] = idleBlockAddrs.back();
-            printLog("Occupy Block of Addr: " + directBlockAddress[i].AddrToInt());
+            std::cout<<"Occupied Block Addr:"<<directBlockAddress[i].AddrToInt()<<std::endl;
             Block b;
             b.randomFill();
             diskController->writeBlock(b, directBlockAddress[i]);
@@ -179,7 +172,7 @@ INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskControll
     else if (fileSize_kb > 10) {
         for (int i = 0; i < 10; i++) {
             directBlockAddress[i] = idleBlockAddrs.back();
-            printLog("Occupy Block of Addr: " + directBlockAddress[i].AddrToInt());
+            std::cout<<"Occupied Block Addr:"<<directBlockAddress[i].AddrToInt()<<std::endl;
             Block b;
             b.randomFill();
             diskController->writeBlock(b, directBlockAddress[i]);
@@ -187,7 +180,7 @@ INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskControll
         }
 
         indirectblockAddress = idleBlockAddrs.back();
-        printLog("Occupy Block of Addr: " + indirectblockAddress.AddrToInt());
+        std::cout<<"Occupied Block For Indirect Addr:"<<indirectblockAddress.AddrToInt()<<std::endl;
         idleBlockAddrs.pop_back();
 
         Address writePos = indirectblockAddress;
@@ -195,7 +188,7 @@ INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskControll
 
         for (int i = 0; i < (fileSize_kb - 10); i++) {
             addr = idleBlockAddrs.back();
-            printLog("Occupy Block of Addr: " + addr.AddrToInt());
+            std::cout<<"Occupied Block Addr:"<<addr.addr<<" "<<addr.AddrToInt()<<std::endl;
             Block b;
             b.randomFill();
             diskController->writeBlock(b, addr);
@@ -207,19 +200,20 @@ INode::INode(int fileSize_kb, std::vector<Address>& idleBlockAddrs, DiskControll
         numDirect = 10;
         numInDirectBlock = fileSize_kb - numDirect;
     }
+    std::cout<<"INode Size:"<<sizeof(this)<<std::endl;
 }
 std::vector<Address> INode::getAllBlockAddress(DiskController *diskController) {
     std::vector<Address> allAddr;
     for (int i = 0; i < numDirect; i++) {
         allAddr.push_back(directBlockAddress[i]);
-        printLog("Dirent Block Addrs: " + directBlockAddress[i].AddrToInt());
+        std::cout<<"Dirent Block Addrs:"<<directBlockAddress[i].AddrToInt()<<std::endl;
     }
     
     for (int i = 0; i < numInDirectBlock; i++) {
         Address add, val;
         add.intToAddr(indirectblockAddress.AddrToInt() + 3 * i);
         val = diskController->readAddress(add);
-        printLog("Indirent Block Addrs: " + directBlockAddress[i].AddrToInt());
+        std::cout<<"InDirect Block Addrs:"<<val.AddrToInt()<<std::endl;
         allAddr.push_back(val);
     }
     return allAddr;
