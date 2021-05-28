@@ -435,7 +435,7 @@ void Controller::ls() {
 }
 
 void Controller::sum() {
-    std::cout << "Remain Store Space : " << idleBlockAddrs.size() << " KB" << std::endl;
+    std::cout << "Occupied Store Space : " << 14336 - idleBlockAddrs.size() << " KB" << std::endl;
 }
 
 void split(const std::string &s, std::vector<std::string> &sv, const char *delim = " ") {
